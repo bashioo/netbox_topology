@@ -1,0 +1,158 @@
+index bd15708..15a112a 100644
+--- netbox/project-static/css/base.css
++++ netbox/project-static/css/base.css
+@@ -433,4 +433,17 @@ td .progress {
+ }
+ textarea {
+     font-family: Consolas, Lucida Console, monospace;
+-}
+\ No newline at end of file
++}
++/* Vis JS hide built-in manipulation panel */
++.vis-edit, .vis-edit-mode, .vis-close, .vis-back, .vis-separator-line {
++    display: none !important;
++    background-image: none !important;
++}
++.vis-manipulation {
++    background-color: #fff !important;
++    border: 0 !important;
++}
++/* JQuery hide dialog close button */
++.ui-dialog-titlebar-close {
++    display: none;
++}
+index bd15708..15a112a 100644
+--- netbox/static/css/base.css
++++ netbox/static/css/base.css
+@@ -433,4 +433,17 @@ td .progress {
+ }
+ textarea {
+     font-family: Consolas, Lucida Console, monospace;
+-}
+\ No newline at end of file
++}
++/* Vis JS hide built-in manipulation panel */
++.vis-edit, .vis-edit-mode, .vis-close, .vis-back, .vis-separator-line {
++    display: none !important;
++    background-image: none !important;
++}
++.vis-manipulation {
++    background-color: #fff !important;
++    border: 0 !important;
++}
++/* JQuery hide dialog close button */
++.ui-dialog-titlebar-close {
++    display: none;
++}
+index 17efcad..6c3b1d6 100644
+--- netbox/templates/_base.html
++++ netbox/templates/_base.html
+@@ -8,6 +8,7 @@
+     <link rel="stylesheet" href="{% static 'font-awesome-4.7.0/css/font-awesome.min.css' %}">
+     <link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.css' %}">
+     <link rel="stylesheet" href="{% static 'css/base.css' %}?v{{ settings.VERSION }}">
++    {% block stylesheet %}{% endblock %}
+     <link rel="icon" type="image/png" href="{% static 'img/netbox.ico' %}" />
+     <meta charset="UTF-8">
+     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+index b14c201..67127d6 100644
+--- netbox/templates/dcim/site.html
++++ netbox/templates/dcim/site.html
+@@ -3,6 +3,10 @@
+ {% load tz %}
+ {% load helpers %}
+ 
++{% block stylesheet %}
++    <link rel="stylesheet" href="{% static 'vis-4.21.0/vis-network.min.css' %}">
++{% endblock %}
++
+ {% block content %}
+ <div class="row">
+     <div class="col-sm-8 col-md-9">
+@@ -137,6 +141,36 @@
+         </div>
+         <div class="panel panel-default">
+             <div class="panel-heading">
++                <strong>Topology</strong>
++            </div>
++            <div class="panel-body">
++                <div id="visjsgraph"></div>
++            </div>
++            {% if perms.dcim.delete_interfaceconnection or perms.dcim.add_interfaceconnection or perms.dcim.change_device%}
++            <div class="panel-footer text-right">
++                {% if perms.dcim.delete_interfaceconnection %}
++                <div id="topology_delete_edge" class="btn btn-primary btn-xs disabled">
++                    <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
++                    <span id="topology_delete_edge_label">Delete selected</span>
++                </div>
++                {% endif %}
++                {% if perms.dcim.add_interfaceconnection %}
++                <div id="topology_add_edge" class="btn btn-primary btn-xs">
++                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
++                    <span id="topology_add_edge_label">New connection</span>
++                </div>
++                {% endif %}
++                {% if perms.dcim.change_device %}
++                <div id="topology_reset_coordinates" class="btn btn-primary btn-xs">
++                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
++                    <span>Reset coordinates</span>
++                </div>
++                {% endif %}
++            </div>
++            {% endif %}
++        </div>
++        <div class="panel panel-default">
++            <div class="panel-heading">
+                 <strong>Contact Info</strong>
+             </div>
+             <table class="table table-hover panel-body attr-table">
+@@ -298,10 +332,49 @@
+             {% endif %}
+         </div>
+ 	</div>
++    <div id="add_connection_dialog" title="Creating a new connection" style="display: none;">
++        <div style="display: inline-block; margin-bottom:5px; width: 100%">
++            <label class="col-xs-5 control-label required" id="device_a_label" for="device_a_interfaces"></label>
++            <div class="col-xs-7">
++                <select class="form-control" id="device_a_interfaces"></select>
++            </div>
++        </div>
++        <div style="display: inline-block; margin-bottom:5px; width: 100%">
++            <label class="col-xs-5 control-label required" id="device_b_label" for="device_b_interfaces"></label>
++            <div class="col-xs-7">
++                <select class="form-control" id="device_b_interfaces"></select>
++            </div>
++        </div>
++        <div style="display: inline-block; margin-bottom:5px; width: 100%">
++            <label class="col-xs-5 control-label required" for="connection_status">Status</label>
++            <div class="col-xs-7">
++                <select class="form-control" id="connection_status">
++                    <option value='True'>Connected</option>
++                    <option value='False'>Planned</option>
++                </select>
++            </div>
++        </div>
++    </div>
++    <div id="delete_connection_dialog" title="Deleting existing connection" style="display: none;">
++        <span id="delete_connection_label"></span>
++    </div>
++        
+ </div>
+ {% include 'inc/graphs_modal.html' %}
+ {% endblock %}
+ 
+ {% block javascript %}
+ <script src="{% static 'js/graphs.js' %}?v{{ settings.VERSION }}"></script>
++<script src="{% static 'vis-4.21.0/vis-network.min.js' %}"></script>
++<script>
++var TOPOLOGY_IMG_DIR = "{% static 'img/topology/' %}";
++var TOKEN = "{{ csrf_token }}";
++var SITE_SLUG = "{{ site.slug }}";
++{% if perms.dcim.change_device %}
++var CHANGE_DEVICE_ALLOWED = true;
++{% else %}
++var CHANGE_DEVICE_ALLOWED = false;
++{% endif %}
++</script>
++<script src="{% static 'js/topology.js' %}"></script>
+ {% endblock %}
