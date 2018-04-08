@@ -9,7 +9,7 @@ fi
 
 cp -r -v netbox/ "$NETBOX_DIR"
 
-patch -d "$NETBOX_DIR" -p0 -N -r- < topology.patch
+patch -d "$NETBOX_DIR" -b -p0 -N -r- < topology.patch
 
 echo "Done! Please restart netbox now to apply changes."
 echo "sudo supervisorctl restart netbox"
