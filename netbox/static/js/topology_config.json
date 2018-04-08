@@ -1,0 +1,7 @@
+{
+    "hidden_roles": [
+        "server",
+        "console-server",
+        "pdu"
+    ]
+}

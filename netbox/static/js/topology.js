@@ -50,49 +50,58 @@ topology.on("click", function (params) {
     }
 });
 
-// load devices
-api_call("/api/dcim/devices/?limit=0&site="+SITE_SLUG, "GET", undefined, function(response) {
-   $.each(response.results, function(index, device) {
-       var node = {
-           id: device.id, 
-           name: device.name,
-           label: '*'+device.name+'*\n'+device.device_type.model, 
-           image: TOPOLOGY_IMG_DIR + device.device_role.slug+'.png',
-           title: device.device_role.name+'<br>'
-               +device.name+'<br>'
-               +device.device_type.manufacturer.name+' '+device.device_type.model+'<br>'
-               +'SN: '+device.serial,
-       }
-       if (device.custom_fields.coordinates){
-            var coordinates = device.custom_fields.coordinates.split(";");
-            node.x = parseInt(coordinates[0]);
-            node.y = parseInt(coordinates[1]);
-            node.physics = false;
-        }
-        nodes.add(node);
-    });
-   // once all nodes a loaded fit them to viewport
-   topology.fit();
-});
+// load configuration
+api_call("/static/js/topology_config.json", "GET", undefined, function(config) {
+    var hidden_roles = config.hidden_roles;
 
-// load connections
-api_call("/api/dcim/interface-connections/?limit=0&site="+SITE_SLUG, "GET", undefined, function(response){
-   $.each(response.results, function(index, connection) {
-       var color = get_connection_color(
-            connection.interface_a.form_factor.value, 
-            connection.interface_b.form_factor.value
-        );
-       edges.add({
-           id: connection.id,
-           from: connection.interface_a.device.id, 
-           to: connection.interface_b.device.id, 
-           dashes: !connection.connection_status.value,
-           color: {color: color, highlight: color, hover: color},
-           title: 'Connection between<br>'
-               +connection.interface_a.device.name+' ['+connection.interface_a.name+']<br>'
-               +connection.interface_b.device.name+' ['+connection.interface_b.name+']',
+    // load devices
+    api_call("/api/dcim/devices/?limit=0&site="+SITE_SLUG, "GET", undefined, function(response) {
+       $.each(response.results, function(index, device) {
+           if (hidden_roles.includes(device.device_role.slug)) {
+               console.log(device.name+' has been hidden because of its role '+device.device_role.slug);
+               return undefined;
+           }
+           var node = {
+               id: device.id, 
+               name: device.name,
+               label: '*'+device.name+'*\n'+device.device_type.model, 
+               image: TOPOLOGY_IMG_DIR + device.device_role.slug+'.png',
+               title: device.device_role.name+'<br>'
+                   +device.name+'<br>'
+                   +device.device_type.manufacturer.name+' '+device.device_type.model+'<br>'
+                   +'SN: '+device.serial,
+           }
+           if (device.custom_fields.coordinates){
+                var coordinates = device.custom_fields.coordinates.split(";");
+                node.x = parseInt(coordinates[0]);
+                node.y = parseInt(coordinates[1]);
+                node.physics = false;
+            }
+            nodes.add(node);
+        });
+       // once all nodes a loaded fit them to viewport
+       topology.fit();
+    });
+
+    // load connections
+    api_call("/api/dcim/interface-connections/?limit=0&site="+SITE_SLUG, "GET", undefined, function(response){
+       $.each(response.results, function(index, connection) {
+           var color = get_connection_color(
+                connection.interface_a.form_factor.value, 
+                connection.interface_b.form_factor.value
+            );
+           edges.add({
+               id: connection.id,
+               from: connection.interface_a.device.id, 
+               to: connection.interface_b.device.id, 
+               dashes: !connection.connection_status.value,
+               color: {color: color, highlight: color, hover: color},
+               title: 'Connection between<br>'
+                   +connection.interface_a.device.name+' ['+connection.interface_a.name+']<br>'
+                   +connection.interface_b.device.name+' ['+connection.interface_b.name+']',
+           });
        });
-   });
+    });
 });
 
 
