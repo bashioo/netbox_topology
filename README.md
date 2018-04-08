@@ -10,6 +10,7 @@ git clone https://github.com/bashioo/netbox_topology.git
 2. run install.sh, sudo might be required to get access to netbox installation directory:
 
 cd netbox_topology
+
 sudo ./install.sh
 
 3. restart netbox via supervisord or apache/nginx depending on your installation
