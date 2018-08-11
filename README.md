@@ -1,9 +1,11 @@
 # netbox_topology
+
 patch to apply to a netbox installation to add beautiful topology view to sites
 
-INSTALL:
+## INSTALL:
 
 1. clone git repo
+
 ```
 git clone https://github.com/bashioo/netbox_topology.git
 ```
@@ -32,7 +34,7 @@ please note that the list should include SLUGs, not names. please check that jso
 
 
 
-UNINSTALL:
+## UNINSTALL:
 
 ```
 sudo ./uninstall.sh
