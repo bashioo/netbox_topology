@@ -34,6 +34,8 @@ sudo service apache2 restart
 
 4. open django admin web-interface and create a custom text field named "coordinates" under dcim->device model
 
+![Screenshot django setup](docs/screenshot-customfield.png "Screenshot of django setup")
+
 5. modify NETBOXPATH/netbox/static/js/topology_config.json to include your list on roles to hide from the topology view.
 
 please note that the list should include SLUGs, not names. please check that json is valid.
