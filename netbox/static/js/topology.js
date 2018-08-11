@@ -86,10 +86,17 @@ api_call("/static/js/topology_config.json", "GET", undefined, function(config) {
     // load connections
     api_call("/api/dcim/interface-connections/?limit=0&site="+SITE_SLUG, "GET", undefined, function(response){
        $.each(response.results, function(index, connection) {
-           var color = get_connection_color(
-                connection.interface_a.form_factor.value, 
-                connection.interface_b.form_factor.value
-            );
+
+           // after 2.4.3 form_factor is not being returned as part of the interface
+           if (connection.interface_a.form_factor) {
+                var color = get_connection_color(
+                    connection.interface_a.form_factor.value,
+                    connection.interface_b.form_factor.value
+                );
+           } else {
+                var color = undefined;
+           }
+
            edges.add({
                id: connection.id,
                from: connection.interface_a.device.id, 
