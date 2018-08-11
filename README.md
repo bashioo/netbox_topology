@@ -4,18 +4,23 @@ patch to apply to a netbox installation to add beautiful topology view to sites
 INSTALL:
 
 1. clone git repo
-
+```
 git clone https://github.com/bashioo/netbox_topology.git
+```
 
 2. run install.sh, sudo might be required to get access to netbox installation directory:
 
+```
 cd netbox_topology
-
 sudo ./install.sh
+```
 
 3. restart netbox via supervisord or apache/nginx depending on your installation
 
+```
 sudo supervisorctl restart netbox
+sudo service apache2 restart
+```
 
 4. open django admin web-interface and create a custom text field named "coordinates" under dcim->device model
 
@@ -29,4 +34,13 @@ please note that the list should include SLUGs, not names. please check that jso
 
 UNINSTALL:
 
+```
 sudo ./uninstall.sh
+```
+
+OR if your installation is GIT based (Option 2 from Netbox installation guide):
+
+```
+cd /opt/netbox
+git checkout .
+```
