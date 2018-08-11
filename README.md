@@ -1,6 +1,14 @@
 # netbox_topology
 
-patch to apply to a netbox installation to add beautiful topology view to sites
+Patch to apply to a netbox installation to add beautiful topology view to sites
+
+Once installed your individual site's pages should look like this:
+
+![Screenshot](docs/screenshot-site.png "Screenshot of site's page")
+
+This module allows to create and delete connections between interfaces via control panel:
+
+![Screenshot control panel](docs/screenshot-panel.png "Screenshot of the control panel")
 
 ## INSTALL:
 
