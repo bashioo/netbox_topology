@@ -1,4 +1,11 @@
-# netbox_topology
+# netbox_topology [deprecated]
+
+## This project is no longer supported!
+### Please consider switching to one of the forks, like: https://github.com/mylivingweb/netbox_topology or https://github.com/NoOne-dev/netbox_topology
+
+While it was a great fun to create and support this addon I just cannot keep it active. I do not use Netbox as an IPAM anymore so I would not be able to keep up with its changes to make sure my topology is still compatible with the current Netbox API version.
+
+---
 
 Patch to apply to a netbox installation to add beautiful topology view to sites
 
